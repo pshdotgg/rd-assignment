@@ -17,7 +17,7 @@ const trips = [
   { pickups: ['A'], dropoffs: ['C'], via: 'W' },
   { pickups: ['B'], dropoffs: ['D'], via: 'W2' },
   { pickups: ['W'], dropoffs: ['C'] },
-  { pickups: ['W'], dropoffs: ['D'] },
+  { pickups: ['W2'], dropoffs: ['D'] },
 ]
 const shipment2 = {
   pickups: ['A', 'B', 'E'],
@@ -35,13 +35,8 @@ interface ValidTrip {
 }
 
 const isValidTrips = (shipment: Shipment, trips: Trip[]) => {
-  const validPickups: ValidTrip = {}
   const validDropoffs: ValidTrip = {}
 
-  // add valid pickups and dropoffs from shipment
-  for (const pickup of shipment.pickups) {
-    validPickups[pickup] = [...shipment.dropoffs]
-  }
   for (const dropoff of shipment.dropoffs) {
     validDropoffs[dropoff] = [...shipment.pickups]
   }
@@ -49,7 +44,6 @@ const isValidTrips = (shipment: Shipment, trips: Trip[]) => {
   // add valid via points to validPickups and validDropoffs
   for (const trip of trips) {
     if (trip.via) {
-      validPickups[trip.via] = trip.dropoffs
       for (const dropoff of trip.dropoffs) {
         validDropoffs[dropoff].push(trip.via)
       }
@@ -59,19 +53,13 @@ const isValidTrips = (shipment: Shipment, trips: Trip[]) => {
   // check if all pickups and dropoffs are valid
   for (const trip of trips) {
     if (
-      !trip.pickups.every((pickup) =>
-        Object.keys(validPickups).includes(pickup)
-      )
-    ) {
-      return false
-    }
-    if (
       !trip.dropoffs.every((dropoff) =>
-        Object.keys(validDropoffs).includes(dropoff)
+        trip.pickups.every((pickup) => validDropoffs[dropoff].includes(pickup))
       )
     )
       return false
   }
+
   return true
 }
 
